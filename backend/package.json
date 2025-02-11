@@ -1,0 +1,48 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "Saarthi backend - REST API for the AI learning platform",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "generate-roadmaps": "node scripts/GenerateRoadmap.js",
+    "generate-roadmaps:all": "node scripts/GenerateRoadmap.js all",
+    "generate-roadmaps:domain": "node scripts/GenerateRoadmap.js domain",
+    "reset-db": "node scripts/resetDatabase.js"
+  },
+  "keywords": [
+    "backend",
+    "studycompanion"
+  ],
+  "author": "Prasad Chopade",
+  "license": "ISC",
+  "dependencies": {
+    "@google-cloud/text-to-speech": "^6.3.0",
+    "@google-cloud/translate": "^9.2.0",
+    "@google/generative-ai": "^0.17.2",
+    "@qdrant/js-client-rest": "^1.13.0",
+    "aws-sdk": "^2.1692.0",
+    "axios": "^1.7.7",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.4.1",
+    "googleapis": "^144.0.0",
+    "ioredis": "^5.6.0",
+    "jsonwebtoken": "^9.0.2",
+    "markdown-it": "^14.1.0",
+    "mongoose": "^8.6.2",
+    "morgan": "^1.10.0",
+    "multer": "^2.0.2",
+    "nodemailer": "^6.9.15",
+    "pdf-parse": "^2.2.1",
+    "puppeteer": "^24.23.0",
+    "uuid": "^9.0.1",
+    "youtubei.js": "^16.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  }
+}
