@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FiArrowRight, FiClock, FiChevronDown, FiChevronRight, FiPlus, FiEdit3, FiTrash2 } from 'react-icons/fi';
 import roadmapService from '../../services/roadmapService';
 import CreateRoadmapModal from '../../components/Roadmap/CreateRoadmapModal';
-import { toast } from 'react-toastify';
+import { toast } from 'react-hot-toast';
 
 function RoadmapPage() {
   const navigate = useNavigate();
@@ -66,13 +66,17 @@ function RoadmapPage() {
   };
 
   const handleDeleteRoadmap = async (roadmapId) => {
-    if (toast.confirm('Are you sure you want to delete this roadmap?')) {
-      try {
-        await roadmapService.deleteRoadmap(roadmapId);
-        await fetchMyRoadmaps();
-      } catch (err) {
-        console.error('Error deleting roadmap:', err);
-      }
+    if (!window.confirm('Are you sure you want to delete this roadmap?')) {
+      return;
+    }
+
+    try {
+      await roadmapService.deleteRoadmap(roadmapId);
+      toast.success('Roadmap deleted');
+      await fetchMyRoadmaps();
+    } catch (err) {
+      console.error('Error deleting roadmap:', err);
+      toast.error('Could not delete the roadmap. Please try again.');
     }
   };
 

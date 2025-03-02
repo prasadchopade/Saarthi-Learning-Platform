@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { toast } from 'react-toastify';
+import { toast } from 'react-hot-toast';
 
 // Create axios instance with base URL
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
@@ -10,7 +10,18 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
   withCredentials: true,
+  // The API is on a free tier that sleeps when idle, and a cold start can take
+  // the better part of a minute. Anything shorter than this aborts a request
+  // that would actually have succeeded.
+  timeout: 90000,
 });
+
+// Ask the API to wake up as early as possible, so the server is usually ready
+// by the time someone finishes reading the landing page and signs in.
+export const warmUpApi = () => {
+  const base = API_BASE_URL.replace(/\/api\/?$/, '');
+  return fetch(`${base}/health`, { mode: 'cors' }).catch(() => {});
+};
 
 api.interceptors.response.use(
   (response) => response,
@@ -94,8 +105,28 @@ api.interceptors.response.use(
           break;
       }
     } else if (error.request) {
-      // Network error - no response received
-      toast.error('Network error. Please check your internet connection.');
+      // No response. On a sleeping free-tier server the first request after
+      // idle times out while the container boots, so retry once before
+      // blaming the user's connection.
+      const config = error.config || {};
+      if (!config.__retried) {
+        config.__retried = true;
+        toast.loading('Waking up the server, this can take up to a minute...', {
+          id: 'cold-start',
+        });
+        return new Promise((resolve) => setTimeout(resolve, 3000))
+          .then(() => api(config))
+          .then((response) => {
+            toast.dismiss('cold-start');
+            return response;
+          })
+          .catch((retryError) => {
+            toast.dismiss('cold-start');
+            toast.error('Could not reach the server. Please try again in a moment.');
+            return Promise.reject(retryError);
+          });
+      }
+      toast.error('Could not reach the server. Please try again in a moment.');
     } else {
       // Other errors (e.g., request setup error)
       toast.error('An unexpected error occurred. Please try again.');
