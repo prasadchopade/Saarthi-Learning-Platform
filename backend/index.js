@@ -12,8 +12,22 @@ const port = process.env.PORT || 5000;
 require('./models/dbConnection');
 
 // Middleware
+// FRONTEND_URL takes a comma-separated list so the deployed site, Vercel
+// preview builds and local development can all talk to the same API.
+const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:5173')
+   .split(',')
+   .map((origin) => origin.trim())
+   .filter(Boolean);
+
 app.use(cors({
-   origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+   origin: (origin, callback) => {
+      // Same-origin and server-to-server calls arrive with no Origin header.
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      // Any Vercel preview deployment of this project.
+      if (/^https:\/\/[a-z0-9-]+\.vercel\.app$/.test(origin)) return callback(null, true);
+      return callback(new Error(`Origin ${origin} is not allowed by CORS`));
+   },
    credentials: true,
 }));
 app.use(cookieParser());
@@ -48,9 +62,14 @@ app.use('/api/roadmaps', roadmapRoutes);
 app.use('/api/presentations', presentationRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/tts', ttsRoutes);
-app.get('/', (req,res)=> {
+app.get('/', (req, res) => {
    res.send("I'm live!!");
-})
+});
+
+// Used by the host's health check and by the keep-alive ping.
+app.get('/health', (req, res) => {
+   res.json({ status: 'ok', uptime: process.uptime() });
+});
 
 // Start the server
 app.listen(port, () => {

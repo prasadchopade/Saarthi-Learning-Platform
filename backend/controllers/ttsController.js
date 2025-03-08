@@ -1,12 +1,37 @@
+const fs = require('fs');
+const path = require('path');
 const textToSpeech = require('@google-cloud/text-to-speech');
 const {Translate} = require('@google-cloud/translate').v2;
 const { v4: uuidv4 } = require('uuid');
 const { uploadFile, getPresignedUrl } = require('../services/s3Service');
 const Presentation = require('../models/presentationModel');
 
-// Create Google Cloud TTS client
-const ttsClient = new textToSpeech.TextToSpeechClient({ keyFilename: './google_cloud_key.json'}
-);
+// Google Cloud credentials come from GOOGLE_CLOUD_CREDENTIALS (the service
+// account JSON, pasted as one line) so the app can be deployed without
+// committing a key file. Locally you can still drop google_cloud_key.json in
+// this folder instead.
+//
+// Both clients are built lazily: constructing them at module load meant a
+// missing key file could take down the whole server on boot.
+const getGoogleCloudOptions = () => {
+  if (process.env.GOOGLE_CLOUD_CREDENTIALS) {
+    return { credentials: JSON.parse(process.env.GOOGLE_CLOUD_CREDENTIALS) };
+  }
+  if (fs.existsSync(path.join(__dirname, '..', 'google_cloud_key.json'))) {
+    return { keyFilename: path.join(__dirname, '..', 'google_cloud_key.json') };
+  }
+  return null;
+};
+
+let ttsClient;
+const getTtsClient = () => {
+  if (!ttsClient) {
+    const options = getGoogleCloudOptions();
+    if (!options) return null;
+    ttsClient = new textToSpeech.TextToSpeechClient(options);
+  }
+  return ttsClient;
+};
 
 /**
  * Convert text to speech using Google Cloud TTS API
@@ -36,7 +61,14 @@ exports.convertTextToSpeech = async (req, res) => {
     const fileName = `tts-${uuidv4()}.mp3`;
     
     // Perform text-to-speech conversion
-    const [response] = await ttsClient.synthesizeSpeech(request);
+    const client = getTtsClient();
+    if (!client) {
+      return res.status(503).json({
+        message: 'Text-to-speech is not configured on this server.',
+      });
+    }
+
+    const [response] = await client.synthesizeSpeech(request);
     
     // Upload audio to S3
     const audioBuffer = response.audioContent;
@@ -91,7 +123,13 @@ exports.translateText = async (req, res) => {
     }
     
     // Create a client
-    const translate = new Translate({ keyFilename: './google_cloud_key.json' });
+    const translateOptions = getGoogleCloudOptions();
+    if (!translateOptions) {
+      return res.status(503).json({
+        message: 'Translation is not configured on this server.',
+      });
+    }
+    const translate = new Translate(translateOptions);
     
     // Translate text
     const [translation] = await translate.translate(text, targetLanguage);
