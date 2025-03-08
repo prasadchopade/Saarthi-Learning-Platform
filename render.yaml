@@ -1,0 +1,44 @@
+# Render blueprint for the Saarthi API.
+# Create the service from this file, then set the secret values in the
+# Render dashboard - they are deliberately not stored in the repo.
+services:
+  - type: web
+    name: saarthi-api
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm ci
+    startCommand: node index.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_TIMEOUT
+        value: 1d
+      - key: PORT
+        value: 5000
+      # Set these in the dashboard:
+      #   DB_URL                 MongoDB Atlas connection string
+      #   JWT_SECRET             generate with: openssl rand -hex 48
+      #   FRONTEND_URL           your Vercel URL (comma-separated if several)
+      #   GOOGLE_CLIENT_ID       from Google Cloud console
+      #   GOOGLE_CLIENT_SECRET   from Google Cloud console
+      #   GOOGLE_REDIRECT_URL    your Vercel URL
+      #   GEMINI_API_KEY         from aistudio.google.com
+      #   ADMIN_EMAILS           your email, for the waitlist admin routes
+      - key: DB_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_REDIRECT_URL
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: ADMIN_EMAILS
+        sync: false
