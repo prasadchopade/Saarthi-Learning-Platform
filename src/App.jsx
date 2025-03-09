@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 
 import { PrivateRoute } from "./utils/privateRoute";
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { Toaster } from 'react-hot-toast';
+import { warmUpApi } from "./services/api";
 
 import LandingPage from "./pages/LandingPage/LandingPage";
 import PrivacyPolicyPage from "./pages/LandingPage/PrivacyPolicyPage";
@@ -30,6 +31,12 @@ import { SearchProvider } from "./context/SearchContext";
 import { SidebarProvider } from "./context/SideBarContext";
 
 function App() {
+
+  // The API sleeps when idle on the free tier. Ping it as soon as the app
+  // loads so it is usually awake by the time anyone signs in.
+  useEffect(() => {
+    warmUpApi();
+  }, []);
 
   const GoogleAuthWrapper = () => (
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
