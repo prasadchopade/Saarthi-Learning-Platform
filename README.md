@@ -2,10 +2,6 @@
 
 Saarthi turns YouTube videos and topics into something you can actually study from. You search for a video, and alongside the player you get a notebook, an AI chat that has read the transcript, and a code editor — so you can take notes, ask questions about what was just said, and try the code without leaving the page. It also generates learning roadmaps and narrated slide decks from a topic.
 
-## About this project
-
-Saarthi was built by a small team at Webier. It's a team project rather than solo work, and this repository is the full application: the React frontend, the Node API, and a small Python service that handles video transcripts.
-
 ## Tech stack
 
 **Frontend** — React 19, Vite, Tailwind, React Router, TipTap (the notebook editor), Monaco (the code editor), React Flow (roadmap graphs)
