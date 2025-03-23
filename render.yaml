@@ -23,7 +23,7 @@ services:
       #   FRONTEND_URL           your Vercel URL (comma-separated if several)
       #   GOOGLE_CLIENT_ID       from Google Cloud console
       #   GOOGLE_CLIENT_SECRET   from Google Cloud console
-      #   GOOGLE_REDIRECT_URL    your Vercel URL
+      #   GOOGLE_REDIRECT_URL    the literal string: postmessage
       #   GEMINI_API_KEY         from aistudio.google.com
       #   ADMIN_EMAILS           your email, for the waitlist admin routes
       - key: DB_URL
