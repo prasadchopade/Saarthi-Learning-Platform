@@ -11,6 +11,11 @@ services:
     startCommand: node index.js
     healthCheckPath: /health
     envVars:
+      # Pinned deliberately. An open-ended engines range let Render install
+      # Node 26, which removed SlowBuffer and broke jsonwebtoken's transitive
+      # buffer-equal-constant-time dependency at require time.
+      - key: NODE_VERSION
+        value: 24.11.0
       - key: NODE_ENV
         value: production
       - key: JWT_TIMEOUT
