@@ -149,17 +149,28 @@ const generatePdfFromMarkdown = async ({ title, subtitle, date, content }) => {
   // Write the HTML to the temporary file
   fs.writeFileSync(tempHtmlPath, htmlContent);
 
-  // Launch puppeteer with proper configuration
-  const browser = await puppeteer.launch({
-    headless: 'new',
-    args: [
-      '--no-sandbox', 
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-      '--disable-accelerated-2d-canvas',
-      '--disable-gpu'
-    ]
-  });
+  // Launch puppeteer with proper configuration.
+  // Chrome is not installed on hosts that set PUPPETEER_SKIP_DOWNLOAD, and it
+  // needs more memory than a small instance has, so surface that as a clear
+  // error rather than a stack trace the caller cannot interpret.
+  let browser;
+  try {
+    browser = await puppeteer.launch({
+      headless: 'new',
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--disable-gpu'
+      ]
+    });
+  } catch (launchError) {
+    fs.unlinkSync(tempHtmlPath);
+    const error = new Error('PDF_BROWSER_UNAVAILABLE');
+    error.cause = launchError;
+    throw error;
+  }
   
   try {
     const page = await browser.newPage();

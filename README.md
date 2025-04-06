@@ -103,6 +103,9 @@ Being straight about the state of things:
 
 - `/notes`, `/practice`, `/resources` and `/community` are routed but land on a "coming soon" page.
 - In the creator, PDF input and video-lesson output are both visible but disabled.
+- PDF export of roadmap notes uses headless Chrome, which needs more memory than
+  the free hosting tier allows. It works locally; on the deployed site that one
+  endpoint returns a "not available" message instead.
 - The frontend builds to a single ~2.9 MB JS chunk. It works, but it needs code splitting.
 - The backend has no test suite.
 

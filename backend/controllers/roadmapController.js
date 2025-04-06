@@ -811,6 +811,12 @@ Make the notes concise, focused on the most important information, and easy to r
       // Send the PDF buffer
       return res.end(pdfBuffer);
     } catch (pdfError) {
+      if (pdfError.message === 'PDF_BROWSER_UNAVAILABLE') {
+        console.error('PDF generation unavailable: headless Chrome could not start');
+        return res.status(503).json({
+          message: 'PDF export is not available on this server. The notes above are still yours to copy.',
+        });
+      }
       console.error('PDF generation failed:', pdfError);
       return res.status(500).json({ message: 'Failed to generate PDF', error: pdfError.message });
     }

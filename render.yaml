@@ -16,6 +16,12 @@ services:
       # buffer-equal-constant-time dependency at require time.
       - key: NODE_VERSION
         value: 24.11.0
+      # Puppeteer's postinstall downloads a ~150MB Chrome. It is only used by
+      # the roadmap PDF export, and Chrome cannot launch inside the free
+      # instance's 512MB anyway, so the download is skipped and that one
+      # endpoint reports itself unavailable instead.
+      - key: PUPPETEER_SKIP_DOWNLOAD
+        value: "true"
       - key: NODE_ENV
         value: production
       - key: JWT_TIMEOUT
