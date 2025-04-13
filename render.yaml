@@ -26,8 +26,10 @@ services:
         value: production
       - key: JWT_TIMEOUT
         value: 1d
-      - key: PORT
-        value: 5000
+      # PORT is deliberately NOT set here. Render injects its own PORT and
+      # routes traffic to it; overriding it makes the app listen on the wrong
+      # port and every request returns 502. index.js falls back to 5000 for
+      # local development.
       # Set these in the dashboard:
       #   DB_URL                 MongoDB Atlas connection string
       #   JWT_SECRET             generate with: openssl rand -hex 48

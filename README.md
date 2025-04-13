@@ -111,4 +111,10 @@ Being straight about the state of things:
 
 ## Deployment
 
-`.github/workflows/deploy.yml` deploys to an EC2 box on push to `main`. It pulls, builds the frontend for nginx to serve, installs backend dependencies and restarts the API under pm2. It expects `EC2_HOST`, `EC2_USER`, `EC2_SSH_KEY` and `EC2_APP_DIR` to be set as repository secrets.
+The frontend deploys to Vercel and the API to Render, both automatically on
+push to `main`. `render.yaml` describes the API service; the environment
+variables it needs are listed in `backend/.env.example` and are set in the
+Render dashboard rather than committed.
+
+`.github/workflows/ci.yml` builds the frontend and checks the backend on every
+push and pull request.
