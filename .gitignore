@@ -42,3 +42,7 @@ desktop.ini
 *.njsproj
 *.sln
 *.sw?
+
+# Stray process logs
+boot.log
+boot.err
