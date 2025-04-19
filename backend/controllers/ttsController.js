@@ -1,7 +1,9 @@
 const fs = require('fs');
 const path = require('path');
-const textToSpeech = require('@google-cloud/text-to-speech');
-const {Translate} = require('@google-cloud/translate').v2;
+// These two cost roughly 66MB of RSS between them and are only used by slide
+// narration, so they are required on first use rather than at startup.
+const loadTextToSpeech = () => require('@google-cloud/text-to-speech');
+const loadTranslate = () => require('@google-cloud/translate').v2.Translate;
 const { v4: uuidv4 } = require('uuid');
 const { uploadFile, getPresignedUrl } = require('../services/s3Service');
 const Presentation = require('../models/presentationModel');
@@ -28,7 +30,7 @@ const getTtsClient = () => {
   if (!ttsClient) {
     const options = getGoogleCloudOptions();
     if (!options) return null;
-    ttsClient = new textToSpeech.TextToSpeechClient(options);
+    ttsClient = new (loadTextToSpeech().TextToSpeechClient)(options);
   }
   return ttsClient;
 };
@@ -129,6 +131,7 @@ exports.translateText = async (req, res) => {
         message: 'Translation is not configured on this server.',
       });
     }
+    const Translate = loadTranslate();
     const translate = new Translate(translateOptions);
     
     // Translate text

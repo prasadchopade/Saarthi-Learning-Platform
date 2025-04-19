@@ -1,0 +1,4 @@
+REDIS_URL is not set - running without cache. Chat sessions will not persist across restarts.
+Failed to obtain server version. Unable to check client-server compatibility. Set checkCompatibility=false to skip version check.
+[YOUTUBEJS][Player]: Failed to extract signature decipher function.
+[YOUTUBEJS][Player]: Failed to extract n decipher function.

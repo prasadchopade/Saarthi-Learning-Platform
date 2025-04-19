@@ -1,4 +1,5 @@
-const puppeteer = require('puppeteer');
+// puppeteer costs about 22MB of RSS and is only used by PDF export.
+const loadPuppeteer = () => require('puppeteer');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
@@ -155,7 +156,7 @@ const generatePdfFromMarkdown = async ({ title, subtitle, date, content }) => {
   // error rather than a stack trace the caller cannot interpret.
   let browser;
   try {
-    browser = await puppeteer.launch({
+    browser = await loadPuppeteer().launch({
       headless: 'new',
       args: [
         '--no-sandbox',

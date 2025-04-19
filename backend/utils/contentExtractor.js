@@ -3,7 +3,8 @@ const fs = require('fs');
 const path = require('path');
 const { getTranscriptStatus, initiateTranscriptProcessing } = require('../services/transcriptService');
 const youtubeService = require('../services/youtubeService');
-const pdfParse = require('pdf-parse');
+// pdf-parse costs about 36MB of RSS; required on first use instead.
+const pdfParse = (...args) => require('pdf-parse')(...args);
 
 /**
  * Extract content from a YouTube URL

@@ -1,12 +1,14 @@
-const { google } = require('googleapis');
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
-const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
-const Redirect_URL = process.env.GOOGLE_REDIRECT_URL;
+// Only the OAuth2 client is needed here. The full `googleapis` package pulls in
+// every Google API surface and costs about 89MB of RSS on startup, which was
+// enough to push the server past the memory limit of a small instance.
+// `google-auth-library` is the package googleapis itself uses for this, at
+// roughly a fifth of the footprint.
+const { OAuth2Client } = require('google-auth-library');
 
-oauth2Client = new google.auth.OAuth2(
-  GOOGLE_CLIENT_ID,
-  GOOGLE_CLIENT_SECRET,
-  Redirect_URL,
+const oauth2Client = new OAuth2Client(
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET,
+  process.env.GOOGLE_REDIRECT_URL
 );
 
-module.exports = {oauth2Client}
+module.exports = { oauth2Client };

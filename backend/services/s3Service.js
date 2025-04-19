@@ -1,15 +1,21 @@
-const AWS = require('aws-sdk');
 const { v4: uuidv4 } = require('uuid');
 
-// Configure AWS SDK
-AWS.config.update({
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  region: process.env.AWS_REGION || 'ap-south-1'
-});
+// aws-sdk costs about 21MB of RSS to load and is only needed when a file is
+// actually uploaded, so it is required on first use rather than at startup.
+let s3;
+const getS3 = () => {
+  if (!s3) {
+    const AWS = require('aws-sdk');
+    AWS.config.update({
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+      region: process.env.AWS_REGION || 'ap-south-1'
+    });
+    s3 = new AWS.S3();
+  }
+  return s3;
+};
 
-// Create S3 service object
-const s3 = new AWS.S3();
 const BUCKET_NAME = process.env.AWS_S3_BUCKET_NAME;
 
 /**
@@ -28,7 +34,7 @@ const uploadFile = async (fileBuffer, contentType, key) => {
   };
 
   try {
-    const result = await s3.upload(params).promise();
+    const result = await getS3().upload(params).promise();
     return {
       key: result.Key,
       location: result.Location,
@@ -54,7 +60,7 @@ const getPresignedUrl = (key, expirySeconds = 3600) => {
   };
 
   try {
-    return s3.getSignedUrl('getObject', params);
+    return getS3().getSignedUrl('getObject', params);
   } catch (error) {
     console.error('Error generating presigned URL:', error);
     throw error;
@@ -86,7 +92,7 @@ const deleteFile = async (key) => {
   };
 
   try {
-    return await s3.deleteObject(params).promise();
+    return await getS3().deleteObject(params).promise();
   } catch (error) {
     console.error('Error deleting from S3:', error);
     throw error;
