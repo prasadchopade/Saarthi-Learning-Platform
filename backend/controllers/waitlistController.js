@@ -4,14 +4,40 @@ const Waitlist = require('../models/waitlistModel');
 const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL || process.env.ZOHO_EMAIL;
 const APP_URL = process.env.APP_URL || 'https://saarthi.xyz';
 
-const transporter = nodemailer.createTransport({
-  host: 'smtp.zoho.in',
-  secure: true,
-  auth: {
-    user: `${process.env.ZOHO_EMAIL}`,
-    pass: `${process.env.ZOHO_PASS}`,
-  },
-});
+const mailConfigured = Boolean(process.env.ZOHO_EMAIL && process.env.ZOHO_PASS);
+
+// Without timeouts an unreachable SMTP host keeps the socket open and the HTTP
+// request that triggered the send never gets a response.
+const transporter = mailConfigured
+  ? nodemailer.createTransport({
+      host: 'smtp.zoho.in',
+      secure: true,
+      auth: {
+        user: process.env.ZOHO_EMAIL,
+        pass: process.env.ZOHO_PASS,
+      },
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 15000,
+    })
+  : null;
+
+// Email is a side effect of joining the waitlist, not the point of it. If the
+// mail server is unconfigured or unreachable, the signup still succeeds.
+const sendMailSafely = async (mailOptions, context) => {
+  if (!transporter) {
+    console.warn(`Email not configured, skipping ${context} to ${mailOptions.to}`);
+    return false;
+  }
+
+  try {
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (error) {
+    console.error(`Failed to send ${context} to ${mailOptions.to}:`, error.message);
+    return false;
+  }
+};
 
 const sendConfirmationEmail = async (email) => {
   const mailOptions = {
@@ -37,7 +63,7 @@ const sendConfirmationEmail = async (email) => {
 </div>
     `,
   };
-  await transporter.sendMail(mailOptions);
+  return sendMailSafely(mailOptions, 'waitlist confirmation');
 };
 
 const sendApprovalEmail = async (email) => {
@@ -64,7 +90,7 @@ const sendApprovalEmail = async (email) => {
 </div>
     `,
   };
-  await transporter.sendMail(mailOptions);
+  return sendMailSafely(mailOptions, 'waitlist approval');
 };
 
 const addEmailToWaitlist = async (req, res) => {
@@ -78,10 +104,12 @@ const addEmailToWaitlist = async (req, res) => {
 
     const newWaitlistEntry = new Waitlist({ email });
     await newWaitlistEntry.save();
-   
-    await sendConfirmationEmail(email);
 
     res.status(201).json({ message: 'Congrats! You are added to the waitlist' });
+
+    // Sent after responding: the signup is already saved, and a slow mail
+    // server should never keep the visitor waiting.
+    sendConfirmationEmail(email);
   } catch (error) {
     console.error('Error adding email to waitlist:', error);
     res.status(500).json({ message: 'Internal server error' });
