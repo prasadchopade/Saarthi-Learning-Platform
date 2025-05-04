@@ -98,10 +98,26 @@ const LightRays = ({
 
       if (!containerRef.current) return;
 
-      const renderer = new Renderer({
-        dpr: Math.min(window.devicePixelRatio, 2),
-        alpha: true,
-      });
+      // This is a decorative background. Some machines cannot give us a WebGL
+      // context at all - hardware acceleration switched off, a locked down
+      // corporate browser, a VM - and ogl throws when that happens. Bail out
+      // quietly rather than taking the page down with us.
+      let renderer;
+      try {
+        renderer = new Renderer({
+          dpr: Math.min(window.devicePixelRatio, 2),
+          alpha: true,
+        });
+      } catch (error) {
+        console.warn('LightRays: WebGL unavailable, skipping the background effect.', error);
+        return;
+      }
+
+      if (!renderer || !renderer.gl) {
+        console.warn('LightRays: no WebGL context, skipping the background effect.');
+        return;
+      }
+
       rendererRef.current = renderer;
 
       const gl = renderer.gl;

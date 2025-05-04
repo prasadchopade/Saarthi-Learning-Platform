@@ -12,6 +12,7 @@ import PrivacyPolicyPage from "./pages/LandingPage/PrivacyPolicyPage";
 import TermsOfServicePage from "./pages/LandingPage/TermsOfServicePage";
 
 import NotFound from "./components/Common/NotFound";
+import ErrorBoundary from "./components/Common/ErrorBoundary";
 import MainLayout from "./layouts/MainLayout";
 import ComingSoonPage from "./pages/ComingSoonPage";
 
@@ -45,7 +46,7 @@ function App() {
   );
 
   return (
-    <>
+    <ErrorBoundary>
       <Toaster />
       <BrowserRouter>
         <ThemeProvider>
@@ -88,7 +89,7 @@ function App() {
           </CodeProvider>
         </ThemeProvider>
       </BrowserRouter>
-    </>
+    </ErrorBoundary>
   );
 }
 
