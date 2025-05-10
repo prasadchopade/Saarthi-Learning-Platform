@@ -101,6 +101,9 @@ Google Cloud Text-to-Speech needs a service account file at `backend/google_clou
 
 Being straight about the state of things:
 
+- Sign-in was gated behind an approved waitlist entry during the beta. Set
+  `REQUIRE_WAITLIST=false` to let anyone sign in with Google, which is what the
+  hosted demo runs with.
 - `/notes`, `/practice`, `/resources` and `/community` are routed but land on a "coming soon" page.
 - In the creator, PDF input and video-lesson output are both visible but disabled.
 - PDF export of roadmap notes uses headless Chrome, which needs more memory than

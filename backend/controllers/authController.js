@@ -65,16 +65,24 @@ const googleLogin = async (req, res) => {
     const { email, name, picture } = userRes.data;
 
     let user = await UserModel.findOne({ email });
-    let waitlist = await WaitlistModel.findOne({ email });
-    if (!user && waitlist && waitlist.approved) {
+
+    if (!user) {
+      // The waitlist gate is how the beta was run: an address had to be
+      // approved before it could sign in. Set REQUIRE_WAITLIST=false to let
+      // anyone sign in with Google, which is what a public demo needs.
+      const requireWaitlist = process.env.REQUIRE_WAITLIST !== 'false';
+      const waitlist = requireWaitlist ? await WaitlistModel.findOne({ email }) : null;
+
+      if (requireWaitlist && !waitlist) {
+        return res.status(400).json({ message: 'Please join the waitlist to login', action: 'waitlist' });
+      }
+
+      if (requireWaitlist && !waitlist.approved) {
+        return res.status(400).json({ message: 'Your email is not approved yet. Please wait for approval' });
+      }
+
       user = await UserModel.create({ name, email, image: picture });
       signup = true;
-    }
-    else if (!user && waitlist && !waitlist.approved) {
-      return res.status(400).json({ message: 'Your email is not approved yet. Please wait for approval' });
-    }
-    else if (!user && !waitlist) {
-      return res.status(400).json({ message: 'Please join the waitlist to login', action: 'waitlist' });
     }
 
     const { id } = user;
