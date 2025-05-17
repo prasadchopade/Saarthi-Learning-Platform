@@ -5,6 +5,19 @@ const { oauth2Client } = require('../utils/googleConfig');
 const axios = require('axios');
 const jwt = require('jsonwebtoken');
 
+// In production the site and the API are on different domains (Vercel and
+// Render), which makes every API call cross-site. A cookie is only sent on a
+// cross-site request when it is SameSite=None, and browsers only accept
+// SameSite=None together with Secure. Locally both run on localhost, which is
+// same-site, so Lax is correct there and Secure would break plain http.
+const isProduction = process.env.NODE_ENV === 'production';
+
+const authCookieOptions = {
+  httpOnly: true,
+  secure: isProduction,
+  sameSite: isProduction ? 'none' : 'lax',
+};
+
 function parseJwtTimeout(timeout) {
   const match = timeout.match(/(\d+)([dhms])/);
   if (!match) return 0;
@@ -96,11 +109,7 @@ const googleLogin = async (req, res) => {
     );
     const maxAgeMs = parseJwtTimeout(jwtTimeout);
     
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: maxAgeMs
-    });
+    res.cookie('token', token, { ...authCookieOptions, maxAge: maxAgeMs });
 
     res.status(200).json({
       message: 'Success',
@@ -123,11 +132,7 @@ const googleLogin = async (req, res) => {
 
 const logout = async (req, res) => {
   try {
-    res.clearCookie('token', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax'
-    });
+    res.clearCookie('token', authCookieOptions);
     
     res.status(200).json({ 
       message: 'Logged out successfully',
