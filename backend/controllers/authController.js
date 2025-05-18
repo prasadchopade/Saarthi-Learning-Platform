@@ -65,6 +65,10 @@ const isAuthenticated = async (req, res) => {
 const googleLogin = async (req, res) => {
   try {
     const code = req.query.code;
+    if (!code) {
+      return res.status(400).json({ message: 'Missing authorization code' });
+    }
+
     let signup = false;
     const googleRes = await oauth2Client.getToken(code);
 
@@ -125,10 +129,20 @@ const googleLogin = async (req, res) => {
     return res;
 
   } catch (err) {
-    console.log(err);
-    res.status(500).json({
-      message: 'Internal server error'
-    });
+    // Google reports the real reason in the response body. Surfacing it makes
+    // the difference between "the code was already used" and an actual server
+    // fault visible instead of both showing up as a blank 500.
+    const googleError = (err && err.response && err.response.data) || {};
+    const reason = googleError.error_description || googleError.error || err.message;
+    console.error('Google login failed:', reason);
+
+    if (googleError.error === 'invalid_grant') {
+      return res.status(401).json({
+        message: 'That sign-in attempt expired or was already used. Please try again.'
+      });
+    }
+
+    res.status(500).json({ message: 'Internal server error' });
   }
 }
 

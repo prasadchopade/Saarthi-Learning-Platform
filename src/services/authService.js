@@ -1,4 +1,5 @@
 import api, { setAuthToken, clearAuthToken, getAuthToken } from "./api";
+import { useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGoogleLogin } from '@react-oauth/google';
 import { toast } from 'react-hot-toast';
@@ -27,10 +28,19 @@ export const isAuthenticated = async () => {
 export const Login = () => {
   const navigate = useNavigate();
 
+  // Google authorization codes are single use. This callback can fire more
+  // than once for the same code, and every exchange after the first fails,
+  // which surfaced as an "internal server error" on an otherwise fine login.
+  const exchangedCode = useRef(null);
+
   const responseGoogle = async (authResult) => {
+    const code = authResult && authResult.code;
+    if (!code || exchangedCode.current === code) return;
+    exchangedCode.current = code;
+
     try {
-      if (authResult['code']) {
-        const result = await api.get(`/googleauth/login?code=${authResult['code']}`);
+      {
+        const result = await api.get(`/googleauth/login?code=${code}`);
         setAuthToken(result.data.token);
         const { name, image } = result.data.user;
         const userInfo = { name, image };
@@ -38,20 +48,32 @@ export const Login = () => {
         navigate('/for-me');
       }
     } catch (err) {
-      if (err.response && err.response.data && err.response.data.action === 'waitlist') {
+      // Allow a retry: this code is spent, but the next attempt gets a new one.
+      exchangedCode.current = null;
+
+      const data = (err.response && err.response.data) || {};
+
+      if (data.action === 'waitlist') {
         window.location.hash = 'waitlist';
-        document.getElementById('waitlist').scrollIntoView({ behavior: 'smooth' });
+        document.getElementById('waitlist')?.scrollIntoView({ behavior: 'smooth' });
         toast.success('Please join our waitlist to get access');
       } else {
-        toast.error(err.response.data.message);
+        toast.error(data.message || 'Could not sign you in. Please try again.');
         console.error('Error while requesting google code: ', err);
       }
     }
   };
 
+  // onError receives an error, not an auth result. Pointing it at the success
+  // handler meant genuine sign-in failures were swallowed silently.
+  const handleLoginError = (error) => {
+    console.error('Google sign-in failed:', error);
+    toast.error('Google sign-in failed. Please try again.');
+  };
+
   const googleLogin = useGoogleLogin({
     onSuccess: responseGoogle,
-    onError: responseGoogle,
+    onError: handleLoginError,
     flow: 'auth-code'
   });
 
