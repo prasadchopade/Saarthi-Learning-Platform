@@ -1,4 +1,4 @@
-import api from "./api";
+import api, { setAuthToken, clearAuthToken, getAuthToken } from "./api";
 import { useNavigate } from 'react-router-dom';
 import { useGoogleLogin } from '@react-oauth/google';
 import { toast } from 'react-hot-toast';
@@ -7,6 +7,10 @@ export const logout = async () => {
   try {
     await api.post("/googleauth/logout");
   } catch (error) {
+    // Logging out locally matters even if the request fails.
+  } finally {
+    clearAuthToken();
+    localStorage.removeItem('user-info');
   }
 };
 
@@ -27,6 +31,7 @@ export const Login = () => {
     try {
       if (authResult['code']) {
         const result = await api.get(`/googleauth/login?code=${authResult['code']}`);
+        setAuthToken(result.data.token);
         const { name, image } = result.data.user;
         const userInfo = { name, image };
         localStorage.setItem('user-info', JSON.stringify(userInfo));

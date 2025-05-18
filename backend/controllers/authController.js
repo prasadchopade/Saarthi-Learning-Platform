@@ -111,11 +111,15 @@ const googleLogin = async (req, res) => {
     
     res.cookie('token', token, { ...authCookieOptions, maxAge: maxAgeMs });
 
+    // The cookie above only works same-site. In production the site and the
+    // API are on different domains, and browsers no longer send third-party
+    // cookies, so the token is also returned here for the client to send back
+    // as an Authorization header.
     res.status(200).json({
       message: 'Success',
       user,
-      signup
-
+      signup,
+      token
     });
     
     return res;

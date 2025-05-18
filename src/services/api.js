@@ -23,6 +23,29 @@ export const warmUpApi = () => {
   return fetch(`${base}/health`, { mode: 'cors' }).catch(() => {});
 };
 
+// The API is on a different domain in production and browsers no longer send
+// third-party cookies, so the token from login is stored here and sent as an
+// Authorization header instead. The server accepts either.
+export const AUTH_TOKEN_KEY = 'auth-token';
+
+export const setAuthToken = (token) => {
+  if (token) localStorage.setItem(AUTH_TOKEN_KEY, token);
+};
+
+export const clearAuthToken = () => {
+  localStorage.removeItem(AUTH_TOKEN_KEY);
+};
+
+export const getAuthToken = () => localStorage.getItem(AUTH_TOKEN_KEY);
+
+api.interceptors.request.use((config) => {
+  const token = getAuthToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -40,6 +63,8 @@ api.interceptors.response.use(
           
         case 401:
           localStorage.removeItem('user');
+          localStorage.removeItem('user-info');
+          clearAuthToken();
           toast.error('Session expired. Please login again.');
           setTimeout(() => {
             console.log("Session expired. Please login again.");
