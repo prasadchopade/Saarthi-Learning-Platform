@@ -24,6 +24,10 @@ services:
         value: "true"
       - key: NODE_ENV
         value: production
+      # Without this the API gates every first-time sign-in behind an approved
+      # waitlist row, which closes the public demo to everyone.
+      - key: REQUIRE_WAITLIST
+        value: "false"
       - key: JWT_TIMEOUT
         value: 1d
       # PORT is deliberately NOT set here. Render injects its own PORT and

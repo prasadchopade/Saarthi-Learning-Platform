@@ -59,16 +59,18 @@ const roadmapService = {
 
   async downloadPdfNotes(roadmapId, topicSequence, subtopicId) {
     try {
-      // Use axios directly to bypass the interceptors for blob responses
-      const response = await axios({
+      // Goes through the shared instance so the Authorization header is
+      // attached. Bypassing it meant this request carried no bearer token and
+      // always came back 401 once auth moved off cross-site cookies.
+      // responseType is per-request, so blob handling still works.
+      const response = await api({
         method: 'post',
-        url: `${api.defaults.baseURL}/roadmaps/${roadmapId}/generate-pdf-notes`,
+        url: `/roadmaps/${roadmapId}/generate-pdf-notes`,
         data: {
           topicSequence,
           subtopicId
         },
-        responseType: 'blob', // Important: This tells axios to handle the response as a binary blob
-        withCredentials: true,
+        responseType: 'blob',
         headers: {
           'Accept': 'application/pdf'
         }

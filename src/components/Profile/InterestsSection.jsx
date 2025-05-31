@@ -38,6 +38,7 @@ const InterestsSection = () => {
   const [userInterests, setUserInterests] = useState([]);
   const [selectedDiscipline, setSelectedDiscipline] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {

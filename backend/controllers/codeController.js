@@ -47,8 +47,10 @@ const analyzeCode = async (req, res) => {
   const userId = req.user._id;
 
   if (!source_code || !language) {
-    res.status(400);
-    throw new Error('Please provide both source code and language');
+    // Throwing here escapes the async handler: express 4 does not catch it,
+    // and an unhandled rejection terminates the whole process rather than
+    // failing this one request.
+    return res.status(400).json({ message: 'Please provide both source code and language' });
   }
 
   try {
@@ -98,8 +100,10 @@ const analyzeCode = async (req, res) => {
 
   } catch (error) {
     console.error('Code analysis error:', error);
-    res.status(500);
-    throw new Error('Failed to analyze code: ' + (error.message || 'Unknown error'));
+    return res.status(500).json({
+      message: 'Failed to analyze code',
+      error: error.message || 'Unknown error'
+    });
   }
 };
 

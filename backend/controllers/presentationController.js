@@ -1,6 +1,7 @@
 const Presentation = require('../models/presentationModel');
 const { getGeminiModel } = require('../utils/geminiConfig');
 const { extractYoutubeContent, extractPdfContent } = require('../utils/contentExtractor');
+const s3Service = require('../services/s3Service');
 
 /**
  * Generate presentation content using Gemini AI

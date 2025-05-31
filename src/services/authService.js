@@ -41,6 +41,13 @@ export const Login = () => {
     try {
       {
         const result = await api.get(`/googleauth/login?code=${code}`);
+
+        // Without a token every later request is unauthenticated, and the user
+        // gets silently bounced back here by the route guard. Fail loudly.
+        if (!result.data?.token) {
+          throw new Error('The server did not return a session token.');
+        }
+
         setAuthToken(result.data.token);
         const { name, image } = result.data.user;
         const userInfo = { name, image };
@@ -58,7 +65,7 @@ export const Login = () => {
         document.getElementById('waitlist')?.scrollIntoView({ behavior: 'smooth' });
         toast.success('Please join our waitlist to get access');
       } else {
-        toast.error(data.message || 'Could not sign you in. Please try again.');
+        toast.error(data.message || err.message || 'Could not sign you in. Please try again.');
         console.error('Error while requesting google code: ', err);
       }
     }

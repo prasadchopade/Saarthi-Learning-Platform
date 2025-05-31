@@ -53,13 +53,25 @@ api.interceptors.response.use(
     
     if (response) {
       const { status, data } = response;
+
+      // A failed sign-in is not an expired session. Without this, a 401 from
+      // the login endpoint wiped state, showed "Session expired" instead of
+      // the real reason, and hard-reloaded the page mid-login - hiding what
+      // actually went wrong. Let the caller handle its own failure.
+      const isAuthRequest = String(response.config?.url || '').includes('/googleauth/login');
+      if (isAuthRequest) {
+        return Promise.reject(error);
+      }
       
       switch (status) {
-        case 400:
-          // Bad Request - Validation errors
+        case 400: {
+          // The waitlist rejection is handled by the caller, which shows its own
+          // message; toasting here too produced two contradictory toasts.
+          if (data?.action === 'waitlist') break;
           const errorMessage = data?.message || data?.error || 'Invalid request data';
           toast.error(errorMessage);
           break;
+        }
           
         case 401:
           localStorage.removeItem('user');

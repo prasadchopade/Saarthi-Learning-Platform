@@ -8,7 +8,8 @@ const ComparisonSlide = ({ content }) => {
     if (!items || items.length === 0) {
       return <div className="text-gray-500">No comparison data available</div>;
     }
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 h-full">
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 h-full">
         {items.map((item, index) => (
           <div 
             key={index}
@@ -47,6 +48,7 @@ const ComparisonSlide = ({ content }) => {
           </div>
         ))}
       </div>
+    );
   };
   
   

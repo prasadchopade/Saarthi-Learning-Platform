@@ -25,7 +25,9 @@ const LessonCreator = () => {
   const [startPage, setStartPage] = useState(1);
   const [endPage, setEndPage] = useState(5);
   const [learningMode, setLearningMode] = useState('deep_learning');
-  const [outputType, setOutputType] = useState('video');
+  // 'video' is disabled in OutputTypeSelector and has no backend route, so it
+  // must not be the default - the Create button would post to /api/lessons/create.
+  const [outputType, setOutputType] = useState('presentation');
   const [recentLessons, setRecentLessons] = useState([]);
   const [recentPresentations, setRecentPresentations] = useState([]);
   const [isLoadingContent, setIsLoadingContent] = useState(true);

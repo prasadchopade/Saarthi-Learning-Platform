@@ -72,6 +72,17 @@ app.get('/health', (req, res) => {
 });
 
 // Start the server
+// Express 4 does not catch a rejection thrown out of an async handler, and an
+// unhandled rejection terminates the process - taking the API down for every
+// user because of one bad request. Log it and keep serving.
+process.on('unhandledRejection', (reason) => {
+   console.error('Unhandled promise rejection:', reason);
+});
+
+process.on('uncaughtException', (error) => {
+   console.error('Uncaught exception:', error);
+});
+
 app.listen(port, () => {
    console.log(`Server running on port ${port}`);
 });
