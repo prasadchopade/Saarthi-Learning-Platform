@@ -134,11 +134,20 @@ const googleLogin = async (req, res) => {
     // fault visible instead of both showing up as a blank 500.
     const googleError = (err && err.response && err.response.data) || {};
     const reason = googleError.error_description || googleError.error || err.message;
-    console.error('Google login failed:', reason);
+    console.error('Google login failed:', googleError.error || '(no oauth error)', '-', reason);
 
     if (googleError.error === 'invalid_grant') {
       return res.status(401).json({
         message: 'That sign-in attempt expired or was already used. Please try again.'
+      });
+    }
+
+    // Any other OAuth-level failure - redirect_uri_mismatch, invalid_client,
+    // unauthorized_client - is a configuration problem, not a server fault.
+    // Reporting it as a blank 500 hid the actual cause, so say what Google said.
+    if (googleError.error) {
+      return res.status(400).json({
+        message: `Google rejected the sign-in: ${googleError.error}. ${reason || ''}`.trim()
       });
     }
 

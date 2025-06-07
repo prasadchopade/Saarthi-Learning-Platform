@@ -85,4 +85,9 @@ process.on('uncaughtException', (error) => {
 
 app.listen(port, () => {
    console.log(`Server running on port ${port}`);
+   // Logged so a misconfigured OAuth redirect is visible in the deploy log
+   // rather than only showing up as a failed sign-in. Not a secret: for the
+   // popup flow this must be the literal string "postmessage".
+   console.log(`Google OAuth redirect_uri: ${process.env.GOOGLE_REDIRECT_URL || '(not set)'}`);
+   console.log(`Waitlist gate: ${process.env.REQUIRE_WAITLIST === 'false' ? 'off' : 'ON - first-time sign-ins are blocked'}`);
 });
