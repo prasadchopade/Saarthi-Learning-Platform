@@ -80,7 +80,7 @@ Everything is documented inline in the three `.env.example` files. The short ver
 | `VITE_GOOGLE_CLIENT_ID` | frontend | The client half of the same login flow. |
 | `VITE_API_BASE_URL` | frontend | Where the app looks for the API. Must end in `/api`. |
 | `GEMINI_API_KEY` | backend | Chat, generated notes, roadmaps, slides. Users can also paste their own key in Profile, which takes priority. |
-| `RAPIDAPI_KEY` | backend | Running code in the editor (Judge0). |
+| `RAPIDAPI_KEY` | backend | Optional. The code editor works without it via Judge0's free public instance; a key routes through the hosted plan instead. |
 | `QDRANT_URL` / `QDRANT_API_KEY` | backend + Services | Transcript search behind the video chat. |
 | `REDIS_URL` | backend | Caching only. Without it the app recomputes instead, and chat sessions reset on restart. |
 | `AWS_*` | backend | File uploads to S3. |
