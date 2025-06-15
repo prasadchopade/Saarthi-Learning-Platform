@@ -1,11 +1,15 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const User = require('../models/userModel');
 
-// "gemini-flash-latest" is an alias that always points at Google's current
-// Flash model. Pinning an exact version is what broke this before: the
-// previously hardcoded gemini-2.0-flash was retired and every AI request
-// started returning 404. Override with GEMINI_MODEL if you need a specific one.
-const MODEL_NAME = process.env.GEMINI_MODEL || 'gemini-flash-latest';
+// An alias rather than a pinned version: the previously hardcoded
+// gemini-2.0-flash was retired and every AI request started returning 404.
+//
+// The *lite* alias specifically, because the free tier meters per model and
+// the full Flash model allows only 20 requests per day - enough to exhaust in
+// a few minutes of ordinary use. The lite tier is a little less capable but
+// has a usable free allowance, which matters more here. Set GEMINI_MODEL to
+// override (e.g. gemini-flash-latest on a paid key).
+const MODEL_NAME = process.env.GEMINI_MODEL || 'gemini-flash-lite-latest';
 
 // Gemini intermittently returns 503 ("model is overloaded") and 429 on the
 // free tier. Those are transient, but without a retry a single one surfaces
