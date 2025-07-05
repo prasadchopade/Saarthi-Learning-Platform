@@ -79,8 +79,12 @@ process.on('unhandledRejection', (reason) => {
    console.error('Unhandled promise rejection:', reason);
 });
 
+// An uncaught exception leaves the process in an unknown state, and some are
+// simply fatal - a failed listen, for one, can never recover. Log it and exit
+// so the host restarts cleanly instead of keeping a process that cannot serve.
 process.on('uncaughtException', (error) => {
    console.error('Uncaught exception:', error);
+   process.exit(1);
 });
 
 app.listen(port, () => {
