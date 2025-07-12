@@ -6,7 +6,6 @@ import {
   faNoteSticky,
   faUsers,
   faGraduationCap,
-  faBrain,
   faMicrochip,
   faUser
 } from "@fortawesome/free-solid-svg-icons";
@@ -36,7 +35,6 @@ const Sidebar = () => {
     {
       title: "Resources",
       items: [
-        { icon: faBrain, label: "Practice", path: "/practice" },
         { icon: faGraduationCap, label: "Resources", path: "/resources" },
         { icon: faUsers, label: "Community", path: "/community" },
       ]

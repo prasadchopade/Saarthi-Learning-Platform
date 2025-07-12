@@ -15,6 +15,7 @@ import NotFound from "./components/Common/NotFound";
 import ErrorBoundary from "./components/Common/ErrorBoundary";
 import MainLayout from "./layouts/MainLayout";
 import ComingSoonPage from "./pages/ComingSoonPage";
+import NotesPage from "./pages/NotesPage";
 
 
 import DashboardPage from "./pages/DashboardPage";
@@ -78,8 +79,7 @@ function App() {
 
                     <Route path="/coming-soon" element={<ComingSoonPage />} />
 
-                    <Route path="/notes" element={<PrivateRoute element={<ComingSoonPage />} />} />
-                    <Route path="/practice" element={<PrivateRoute element={<ComingSoonPage />} />} />
+                    <Route path="/notes" element={<PrivateRoute element={<NotesPage />} />} />
                     <Route path="/resources" element={<PrivateRoute element={<ComingSoonPage />} />} />
                     <Route path="/community" element={<PrivateRoute element={<ComingSoonPage />} />} />
                   </Route>

@@ -131,7 +131,16 @@ const Library = ({ setSelectedNotebookId }) => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               whileHover={{ y: -2 }}
-              className="group bg-white dark:bg-gray-800 rounded-2xl p-4 
+              onClick={() => setSelectedNotebookId(notebook._id)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setSelectedNotebookId(notebook._id);
+                }
+              }}
+              className="group cursor-pointer bg-white dark:bg-gray-800 rounded-2xl p-4 
                        border border-zinc-200/80 dark:border-gray-700/80
                        hover:border-indigo-500/30 dark:hover:border-indigo-400/30 
                        hover:shadow-lg hover:shadow-indigo-500/5 dark:hover:shadow-indigo-400/5
@@ -151,7 +160,7 @@ const Library = ({ setSelectedNotebookId }) => {
                 </div>
                 <div className="flex  opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
-                    onClick={() => setSelectedNotebookId(notebook._id)}   
+                    onClick={(e) => { e.stopPropagation(); setSelectedNotebookId(notebook._id); }}
                     className="p-1 rounded-lg hover:bg-zinc-100 dark:hover:bg-gray-700 
                              text-zinc-600 dark:text-zinc-400
                              hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors"
@@ -159,7 +168,7 @@ const Library = ({ setSelectedNotebookId }) => {
                     <FontAwesomeIcon icon={faPen} />
                   </button>
                   <button
-                    onClick={() => deleteNotebook(notebook._id)}
+                    onClick={(e) => { e.stopPropagation(); deleteNotebook(notebook._id); }}
                     className="p-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 
                              text-zinc-600 dark:text-zinc-400
                              hover:text-red-600 dark:hover:text-red-400 transition-colors"
