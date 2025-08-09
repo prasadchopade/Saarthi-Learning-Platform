@@ -46,7 +46,14 @@ function Pragya({ currentVideoId, currentPresentationId }) {
         setChatHistory(history || []);
       }
       else if (currentVideoId) {
-        await chatService.initializeContext(currentVideoId);
+        // The server answers with a status rather than throwing, so a video
+        // that simply has no captions reads as "no transcript" instead of the
+        // generic failure it used to show.
+        const result = await chatService.initializeContext(currentVideoId);
+        if (result?.status && result.status !== 'exists') {
+          setError(result.message || 'This video has no transcript, so questions about it cannot be answered.');
+          return;
+        }
         const history = await chatService.getChatHistory(currentVideoId);
         setChatHistory(history || []);
       }

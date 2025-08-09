@@ -36,8 +36,36 @@ const createRedisClient = () => {
 };
 
 const redisClient = createRedisClient();
+
+// Without Redis the cache still needs somewhere to live, otherwise chat
+// sessions reset between every message and transcripts are refetched on every
+// question. This is per-process and lost on restart, which is the right
+// trade-off for a cache: correctness never depends on it.
+const memoryCache = new Map();
+
+const memoryGet = (key) => {
+  const entry = memoryCache.get(key);
+  if (!entry) return null;
+  if (entry.expiresAt && entry.expiresAt < Date.now()) {
+    memoryCache.delete(key);
+    return null;
+  }
+  return entry.value;
+};
+
+const memorySet = (key, value, expirySeconds) => {
+  // Bound it so a long-running process cannot grow without limit.
+  if (memoryCache.size > 500) {
+    memoryCache.delete(memoryCache.keys().next().value);
+  }
+  memoryCache.set(key, {
+    value,
+    expiresAt: expirySeconds ? Date.now() + expirySeconds * 1000 : null,
+  });
+};
+
 const getAsync = async (key) => {
-  if (!redisClient) return null;
+  if (!redisClient) return memoryGet(key);
   try {
     const value = await redisClient.get(key);
     return value ? JSON.parse(value) : null;
@@ -48,7 +76,10 @@ const getAsync = async (key) => {
 };
 
 const setAsync = async (key, value, expiry = 86400) => {
-  if (!redisClient) return false;
+  if (!redisClient) {
+    memorySet(key, value, expiry);
+    return true;
+  }
   try {
     await redisClient.setex(key, expiry, JSON.stringify(value));
     return true;
@@ -59,7 +90,10 @@ const setAsync = async (key, value, expiry = 86400) => {
 };
 
 const deleteAsync = async (key) => {
-  if (!redisClient) return false;
+  if (!redisClient) {
+    memoryCache.delete(key);
+    return true;
+  }
   try {
     await redisClient.del(key);
     return true;

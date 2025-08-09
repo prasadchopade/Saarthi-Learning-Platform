@@ -1,7 +1,7 @@
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
-const { getTranscriptStatus, initiateTranscriptProcessing } = require('../services/transcriptService');
+const { getTranscriptStatus, initiateTranscriptProcessing, getTranscriptText } = require('../services/transcriptService');
 const youtubeService = require('../services/youtubeService');
 // pdf-parse costs about 36MB of RSS; required on first use instead.
 const pdfParse = (...args) => require('pdf-parse')(...args);
@@ -51,15 +51,7 @@ const extractYoutubeContent = async (youtubeUrl) => {
       }
     }
     
-    // Get transcript content from the Python service
-    const PYTHON_SERVICE_URL = process.env.PYTHON_SERVICE_URL || 'http://127.0.0.1:5001';
-    const response = await axios.get(`${PYTHON_SERVICE_URL}/api/videos/${videoId}/transcript`);
-    
-    if (response.data.status === 'error') {
-      throw new Error(response.data.message || 'Failed to retrieve transcript');
-    }
-    
-    const transcript = response.data.transcript || '';
+    const transcript = await getTranscriptText(videoId);
     
     // Combine title and transcript
     return `Title: ${videoTitle}\n\nTranscript:\n${transcript}`;

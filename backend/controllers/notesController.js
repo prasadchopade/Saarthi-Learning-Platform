@@ -1,5 +1,5 @@
 const { getGeminiModel } = require('../utils/geminiConfig');
-const axios = require('axios');
+const transcriptService = require('../services/transcriptService');
 
 exports.enhanceNotes = async (req, res) => {
   const { text, action, prompt, context, formatAsMarkdown } = req.body;
@@ -303,35 +303,23 @@ exports.generateSmartNotes = async (req, res) => {
   }
 
   try {
-    const statusResponse = await axios.get(
-      `${process.env.PYTHON_SERVICE_URL}/api/videos/${videoId}/status`
-    );
-
-    if (statusResponse.data.status === 'not_processed') {
-      const processResponse = await axios.post(
-        `${process.env.PYTHON_SERVICE_URL}/api/videos/${videoId}/process`
-      );
-
-      if (processResponse.data.status === 'error') {
-        return res.status(500).json({
-          message: 'Failed to process video transcript',
-          error: processResponse.data.error
-        });
-      }
-      await new Promise(resolve => setTimeout(resolve, 5000));
-    }
-
-    // Fetch transcript chunks
-    const chunksResponse = await axios.get(
-      `${process.env.PYTHON_SERVICE_URL}/api/videos/${videoId}/transcript-chunks`
-    );
-
-    if (!chunksResponse.data.chunks || chunksResponse.data.chunks.length === 0) {
+    // Transcripts are fetched in-process now, so there is nothing to poll for
+    // and no separate service to be running.
+    let chunks;
+    try {
+      chunks = await transcriptService.getTranscriptChunks(videoId);
+    } catch (error) {
       return res.status(404).json({
-        message: 'No transcript chunks found for this video'
+        message: 'This video has no transcript available, so notes cannot be generated from it.'
       });
     }
-    const sortedChunks = chunksResponse.data.chunks.sort((a, b) => a.start - b.start);
+
+    if (!chunks.length) {
+      return res.status(404).json({
+        message: 'No transcript found for this video'
+      });
+    }
+    const sortedChunks = chunks.sort((a, b) => a.start - b.start);
 
     const optimizedChunks = createOptimalChunks(sortedChunks, 5);
     const userId = req.user._id;
