@@ -98,6 +98,34 @@ const fetchTranscript = async (videoId) => {
  * there is no background job to poll - the transcript is either ready when
  * this returns or it is genuinely unavailable.
  */
+/**
+ * The library raises distinct errors, and they mean very different things: a
+ * video with captions turned off is a dead end, but a rate limit is YouTube
+ * refusing this particular server and says nothing about the video. Collapsing
+ * both into "no transcript" hid which one we were hitting.
+ */
+const describeFailure = (error) => {
+  const name = error?.constructor?.name || '';
+  const text = String(error?.message || '');
+
+  if (name.includes('TooManyRequest') || /too many requests|captcha/i.test(text)) {
+    return {
+      reason: 'rate_limited',
+      message: 'YouTube is currently refusing transcript requests from this server. Please try again later.',
+    };
+  }
+  if (name.includes('Disabled') || /disabled/i.test(text)) {
+    return { reason: 'disabled', message: 'Captions are turned off for this video, so it cannot be discussed here.' };
+  }
+  if (name.includes('VideoUnavailable') || /no longer available/i.test(text)) {
+    return { reason: 'video_unavailable', message: 'This video is no longer available.' };
+  }
+  return {
+    reason: 'not_available',
+    message: 'This video has no transcript available, so questions about it cannot be answered.',
+  };
+};
+
 const initiateTranscriptProcessing = async (videoId) => {
   try {
     const chunks = await fetchTranscript(videoId);
@@ -107,11 +135,9 @@ const initiateTranscriptProcessing = async (videoId) => {
       chunks: chunks.length,
     };
   } catch (error) {
-    console.error(`Transcript unavailable for ${videoId}:`, error.message);
-    return {
-      status: 'unavailable',
-      message: 'This video has no transcript available, so questions about it cannot be answered.',
-    };
+    const { reason, message } = describeFailure(error);
+    console.error(`Transcript fetch failed for ${videoId} [${reason}]:`, error?.message);
+    return { status: 'unavailable', reason, message };
   }
 };
 
@@ -124,7 +150,8 @@ const getTranscriptStatus = async (videoId) => {
     return await initiateTranscriptProcessing(videoId);
   } catch (error) {
     console.error(`Error checking transcript status for ${videoId}:`, error.message);
-    return { status: 'unavailable', message: 'Could not load the transcript for this video.' };
+    const { reason, message } = describeFailure(error);
+    return { status: 'unavailable', reason, message };
   }
 };
 
