@@ -63,15 +63,6 @@ const ttsService = {
    * Get available voices for TTS
    * @returns {Promise<Array>} - Array of available voices
    */
-  getVoices: async () => {
-    try {
-      const response = await api.get('/tts/voices');
-      return response.data.voices;
-    } catch (error) {
-      console.error('Error fetching TTS voices:', error);
-      throw error;
-    }
-  },
   
   /**
    * Translate text to target language

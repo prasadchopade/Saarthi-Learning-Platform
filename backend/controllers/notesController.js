@@ -100,47 +100,6 @@ Ensure all code is properly formatted with correct syntax highlighting hints.`;
   }
 };
 
-// Actual implementation of AI content generation
-const generateAiContent = async (prompt) => {
-  try {
-    const result = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      generationConfig: {
-        temperature: 0.2,
-        topK: 40,
-        topP: 0.95,
-        maxOutputTokens: 8192,
-      },
-      safetySettings: [
-        {
-          category: "HARM_CATEGORY_HARASSMENT",
-          threshold: "BLOCK_MEDIUM_AND_ABOVE"
-        },
-        {
-          category: "HARM_CATEGORY_HATE_SPEECH",
-          threshold: "BLOCK_MEDIUM_AND_ABOVE"
-        },
-        {
-          category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-          threshold: "BLOCK_MEDIUM_AND_ABOVE"
-        },
-        {
-          category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-          threshold: "BLOCK_MEDIUM_AND_ABOVE"
-        }
-      ]
-    });
-
-    // Extract the text from the response
-    const responseText = result.response.text();
-
-    // Clean up any potential markdown formatting issues
-    return cleanMarkdownOutput(responseText);
-  } catch (error) {
-    console.error('Gemini API Error:', error);
-    throw new Error(`Failed to generate content: ${error.message}`);
-  }
-};
 
 
 const optimizeTranscript = (text) => {

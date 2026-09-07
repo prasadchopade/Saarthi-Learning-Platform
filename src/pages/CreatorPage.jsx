@@ -72,7 +72,6 @@ const LessonCreator = () => {
     const fetchContent = async () => {
       try {
         const [presentations] = await Promise.all([
-          // lessonService.getLessons(),
           presentationService.getPresentations()
         ]);
 
